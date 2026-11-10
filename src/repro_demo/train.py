@@ -71,6 +71,10 @@ def train(cfg: TrainConfig = TrainConfig()) -> dict:
     if cfg.seed is not None:
         # Seeds Python's `random`, NumPy and the Keras backend in one call.
         keras.utils.set_random_seed(cfg.seed)
+    else:
+        # Truly unseeded: fresh OS entropy, so an earlier seeded run in the
+        # same process cannot make this run repeatable by accident.
+        keras.utils.set_random_seed(int.from_bytes(os.urandom(4), "little"))
     (x_tr, y_tr), (x_val, y_val) = load_split(cfg)
     model = build_model(cfg, x_tr.shape[1], int(y_tr.max()) + 1)
     model.fit(x_tr, y_tr, epochs=cfg.epochs, batch_size=cfg.batch_size, verbose=0)
