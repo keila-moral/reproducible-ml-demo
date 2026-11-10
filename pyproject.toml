@@ -27,3 +27,5 @@ packages = ["src/repro_demo"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# Always test the checked-out code in src/, never an installed copy.
+pythonpath = ["src"]
