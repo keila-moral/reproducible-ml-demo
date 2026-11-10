@@ -4,3 +4,4 @@ mlruns/
 mlflow.db
 .gemini_cache/
 *.egg-info/
+requirements.lock.txt
