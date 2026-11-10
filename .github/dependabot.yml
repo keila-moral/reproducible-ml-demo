@@ -1,0 +1,11 @@
+# Weekly dependency-update pull requests; each one runs the golden-result workflow.
+version: 2
+updates:
+  - package-ecosystem: "uv"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"

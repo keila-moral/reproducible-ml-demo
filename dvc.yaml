@@ -1,0 +1,7 @@
+stages:
+  prepare:
+    cmd: python -m repro_demo.prepare --out data/digits.parquet
+    deps:
+      - src/repro_demo/prepare.py
+    outs:
+      - data/digits.parquet

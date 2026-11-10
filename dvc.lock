@@ -1,0 +1,14 @@
+schema: '2.0'
+stages:
+  prepare:
+    cmd: python -m repro_demo.prepare --out data/digits.parquet
+    deps:
+    - path: src/repro_demo/prepare.py
+      hash: md5
+      md5: 40ead34d867a1b9640c5058cd4fe79dd
+      size: 941
+    outs:
+    - path: data/digits.parquet
+      hash: md5
+      md5: 2849a6c59837e4502293f710f106a8f6
+      size: 91775

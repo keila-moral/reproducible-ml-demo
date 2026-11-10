@@ -1,0 +1,6 @@
+.venv/
+__pycache__/
+mlruns/
+mlflow.db
+.gemini_cache/
+*.egg-info/

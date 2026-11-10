@@ -1,0 +1,29 @@
+[project]
+name = "repro-demo"
+version = "0.1.0"
+description = "Demo code for the DevFest Berlin 2026 talk 'It Worked in My Notebook: Engineering Reproducible ML Pipelines'."
+requires-python = ">=3.11"
+dependencies = [
+    "jax",
+    "keras>=3",
+    "numpy",
+    "pandas",
+    "pyarrow",
+    "scikit-learn",
+    "mlflow",
+    "dvc",
+    "google-genai",
+]
+
+[dependency-groups]
+dev = ["pytest"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/repro_demo"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

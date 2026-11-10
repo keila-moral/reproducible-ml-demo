@@ -1,0 +1,17 @@
+name: golden-result
+
+on:
+  pull_request:
+    paths: [uv.lock, pyproject.toml, "src/**", "tests/**", dvc.yaml, dvc.lock]
+  workflow_dispatch:
+
+jobs:
+  golden:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked
+      - run: uv run dvc repro
+      - run: git diff --exit-code dvc.lock   # data hash must match the commit
+      - run: uv run pytest tests/golden -v
