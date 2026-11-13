@@ -63,8 +63,8 @@ uv run python -m repro_demo.make_golden                     # regenerate the gol
 validation accuracy is within a tolerance of the committed value in
 [`tests/golden/golden.json`](tests/golden/golden.json) (currently 0.958217 ± 0.005).
 
-[`.github/workflows/golden.yml`](.github/workflows/golden.yml) runs it on every pull request that
-touches the lockfile, the source, the tests or the data definition. It also checks that the rebuilt
+[`.github/workflows/golden.yml`](.github/workflows/golden.yml) runs it on every pull request, and
+a branch rule makes it a required check before merging into `main`. It also checks that the rebuilt
 data matches the hash in `dvc.lock`. Dependabot opens weekly dependency-update pull requests, so
 each upgrade is tested against the result, not only against whether the code runs.
 

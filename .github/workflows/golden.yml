@@ -1,8 +1,7 @@
 name: golden-result
 
 on:
-  pull_request:
-    paths: [uv.lock, pyproject.toml, "src/**", "tests/**", dvc.yaml, dvc.lock]
+  pull_request:   # every PR, so the required check always reports
   workflow_dispatch:
 
 jobs:
