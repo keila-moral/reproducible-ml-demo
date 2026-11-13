@@ -87,3 +87,7 @@ notebooks/         the five Colab notebooks
 dvc.yaml, dvc.lock the data pipeline and the recorded hash of its output
 uv.lock            every package, its exact version and file hashes
 ```
+
+## License
+
+[MIT](LICENSE). The digits dataset ships with scikit-learn (BSD-3-Clause).

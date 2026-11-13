@@ -3,6 +3,7 @@ name = "repro-demo"
 version = "0.1.0"
 description = "Demo code for the DevFest Berlin 2026 talk 'It Worked in My Notebook: Engineering Reproducible ML Pipelines'."
 requires-python = ">=3.11"
+license = "MIT"
 dependencies = [
     "jax",
     "keras>=3",
