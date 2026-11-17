@@ -5,6 +5,7 @@ slightly different accuracy. `train(TrainConfig(seed=42))` is the controlled run
 """
 from __future__ import annotations
 
+import hashlib
 import os
 
 os.environ.setdefault("KERAS_BACKEND", "jax")
@@ -66,8 +67,23 @@ def build_model(cfg: TrainConfig, n_features: int, n_classes: int) -> keras.Mode
     return model
 
 
+def predictions_sha256(predictions: np.ndarray) -> str:
+    """Fingerprint of predicted class labels: equal only if every prediction is equal.
+
+    Labels are hashed as little-endian int32, so the digest does not depend on
+    the platform's byte order or on the integer type NumPy happened to return.
+    """
+    labels = np.ascontiguousarray(np.asarray(predictions), dtype="<i4")
+    return hashlib.sha256(labels.tobytes()).hexdigest()
+
+
 def train(cfg: TrainConfig = TrainConfig()) -> dict:
     """Train once and return validation metrics."""
+    return train_and_predict(cfg)[0]
+
+
+def train_and_predict(cfg: TrainConfig = TrainConfig()) -> tuple[dict, np.ndarray]:
+    """Train once; return validation metrics and the predicted label of every validation sample."""
     if cfg.seed is not None:
         # Seeds Python's `random`, NumPy and the Keras backend in one call.
         keras.utils.set_random_seed(cfg.seed)
@@ -79,7 +95,9 @@ def train(cfg: TrainConfig = TrainConfig()) -> dict:
     model = build_model(cfg, x_tr.shape[1], int(y_tr.max()) + 1)
     model.fit(x_tr, y_tr, epochs=cfg.epochs, batch_size=cfg.batch_size, verbose=0)
     loss, acc = model.evaluate(x_val, y_val, verbose=0)
-    return {"val_accuracy": round(float(acc), 6), "val_loss": round(float(loss), 6)}
+    predictions = np.argmax(model.predict(x_val, verbose=0), axis=1).astype("int32")
+    metrics = {"val_accuracy": round(float(acc), 6), "val_loss": round(float(loss), 6)}
+    return metrics, predictions
 
 
 if __name__ == "__main__":
