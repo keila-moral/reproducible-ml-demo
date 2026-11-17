@@ -31,7 +31,7 @@ instructions in its first cell.
 | 01 | [A locked environment](https://colab.research.google.com/github/keila-moral/reproducible-ml-demo/blob/main/notebooks/01_locked_environment.ipynb) | Replacing Colab's preinstalled packages with the hash-verified `uv.lock`, and checking it |
 | 02 | [Two runs, one number](https://colab.research.google.com/github/keila-moral/reproducible-ml-demo/blob/main/notebooks/02_lineage_and_determinism.ipynb) | DVC data hashes, JAX PRNG keys, and identical seeded runs recorded in MLflow |
 | 03 | [Pinned versus newest](https://colab.research.google.com/github/keila-moral/reproducible-ml-demo/blob/main/notebooks/03_gemini_pinned_vs_latest.ipynb) | The same evaluation on a pinned Gemini model and on "whatever is newest", logged and cached |
-| 04 | [The red pull request](https://colab.research.google.com/github/keila-moral/reproducible-ml-demo/blob/main/notebooks/04_golden_result_test.ipynb) | A golden-result test catching a harmless-looking refactor |
+| 04 | [The red pull request](https://colab.research.google.com/github/keila-moral/reproducible-ml-demo/blob/main/notebooks/04_golden_result_test.ipynb) | A golden-result test catching a harmless-looking refactor, and a change with the same score but different predictions |
 
 Notebook 03 needs a Gemini API key, stored as a Colab secret named `GOOGLE_API_KEY`
 (key icon in the left sidebar). The free tier is enough. Never paste the key into a cell.
@@ -45,7 +45,7 @@ git clone https://github.com/keila-moral/reproducible-ml-demo.git
 cd reproducible-ml-demo
 uv sync --locked                 # install exactly what uv.lock records
 uv run dvc repro                 # rebuild the dataset; dvc.lock holds its hash
-uv run pytest tests/golden -v    # train once and compare with the golden value
+uv run pytest tests/golden -v    # train once and compare with the golden values
 ```
 
 A few command-line entry points do the same steps as the notebooks:
@@ -54,14 +54,24 @@ A few command-line entry points do the same steps as the notebooks:
 uv run python -m repro_demo.run --seed 42 --name seeded-a   # one run, logged to MLflow
 uv run python -m repro_demo.run --no-seed --name unseeded   # the silent failure
 uv run python -m repro_demo.check                           # golden comparison, in plain words
-uv run python -m repro_demo.make_golden                     # regenerate the golden value
+uv run python -m repro_demo.make_golden                     # regenerate the golden values
 ```
 
 ## The golden-result test
 
-[`tests/golden/test_result.py`](tests/golden/test_result.py) trains with `seed=42` and checks that
-validation accuracy is within a tolerance of the committed value in
-[`tests/golden/golden.json`](tests/golden/golden.json) (currently 0.958217 ± 0.005).
+[`tests/golden/test_result.py`](tests/golden/test_result.py) trains once with `seed=42` and compares
+the run with the committed values in [`tests/golden/golden.json`](tests/golden/golden.json). It asks
+two different questions, and each is its own assertion:
+
+| Question | Assertion | What it misses |
+| --- | --- | --- |
+| Same score? | Validation accuracy within ±0.005 of 0.958217 | With 359 validation samples one prediction is worth about 0.0028, so changed predictions can pass, and different predictions can give identical accuracy |
+| Same behaviour? | sha256 of the 359 predicted labels equals the committed hash | Nothing about the validation set itself: neither test detects a shift in the distribution of new data |
+
+A green check means these two comparisons held for this code, this environment and this data. It
+does not prove the pipeline is reproducible in every sense: decide which kind of "same" your
+pipeline needs (same metric, same predictions, same weights, same behaviour on new data) and test
+for that one.
 
 [`.github/workflows/golden.yml`](.github/workflows/golden.yml) runs it on every pull request, and
 a branch rule makes it a required check before merging into `main`. It also checks that the rebuilt
@@ -69,7 +79,9 @@ data matches the hash in `dvc.lock`. Dependabot opens weekly dependency-update p
 each upgrade is tested against the result, not only against whether the code runs.
 
 If a change moves the result on purpose, run `make_golden` and commit the new `golden.json`.
-The diff then shows reviewers, in plain numbers, how the accuracy changed.
+The diff then shows reviewers, in plain numbers, how the accuracy changed and that the predictions
+changed. Generate it in the same environment as CI (Linux, CPU): the predictions hash is exact, so
+it can differ on other hardware even when the accuracy matches.
 
 ## Repository layout
 
@@ -79,10 +91,10 @@ src/repro_demo/
   train.py         TrainConfig and train(), shared by every notebook and the test
   lineage.py       record commit, environment, data hash and config for a run
   run.py           one training run in a fresh process, logged to MLflow
-  check.py         compare this code's result with the golden value
+  check.py         compare this code's result with the golden values
   make_golden.py   regenerate tests/golden/golden.json
   timing.py        measure the cost of deterministic GPU kernels
-tests/golden/      the golden-result test and its committed value
+tests/golden/      the golden-result tests and their committed values
 notebooks/         the five Colab notebooks
 dvc.yaml, dvc.lock the data pipeline and the recorded hash of its output
 uv.lock            every package, its exact version and file hashes

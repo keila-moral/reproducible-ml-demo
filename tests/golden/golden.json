@@ -1,4 +1,6 @@
 {
   "val_accuracy": 0.958217,
-  "tolerance": 0.005
+  "tolerance": 0.005,
+  "n_val": 359,
+  "val_predictions_sha256": "1be65349bca5b36f6ed5d907683cea0eb7a0601846c02b1ae736d118ff62c2ea"
 }
